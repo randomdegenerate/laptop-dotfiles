@@ -1,0 +1,92 @@
+# i3status configuration file.
+# see "man i3status" for documentation.
+
+# It is important that this file is edited as UTF-8.
+# The following line should contain a sharp s:
+# ß
+# If the above line is not correctly displayed, fix your editor first!
+
+general {
+	output_format = "i3bar"
+	colors = true
+	color_good = "#6C3BAA"
+	color_degraded = "#A379D9"
+	color_bad = "#2222ff"
+	interval = 5
+}
+
+order += "battery all"
+order += "wireless _first_"
+order += "ethernet _first_"
+order += "cpu_usage"
+order += "load"
+order += "cpu_temperature 0"
+order += "memory"
+order += "disk /"
+order += "ipv6"
+#order += "tztime pacific"
+#order += "tztime central"
+#order += "tztime eastern"
+order += "tztime local"
+
+battery all {
+	format = "%status %percentage %remaining"
+	format_down = "No battery"
+	low_threshold = "10"
+	threshold_type = "percentage"
+}
+
+wireless _first_ {
+	format_up = "W %signal %essid %ip"
+	format_down = "W down"
+}
+
+ethernet _first_ {
+	format_up = "E %ip (%speed)"
+	format_down = "E down"
+}
+
+cpu_usage {
+	format = "CPU %usage"
+	degraded_threshold = "25"
+	max_threshold = "75"
+}
+
+load {
+	format = "%1min-%5min-%15min"
+	max_threshold = "4.0"
+}
+
+cpu_temperature 0 {
+	format = "%degrees°C"
+	max_threshold = 80
+}
+
+memory {
+	format = "M %used *%available"
+	threshold_degraded = "80"
+	threshold_critical = "90"
+}
+
+disk "/" {
+	format = "%avail"
+}
+
+tztime pacific {
+	format = "%Y-%m-%d %H:%M %Z"
+	timezone = "US/Pacific"
+}
+
+tztime central {
+	format = "%H:%M %Z"
+	timezone = "US/Central"
+}
+
+tztime eastern {
+	format = "%H:%M %Z"
+	timezone = "US/Eastern"
+}
+
+tztime local {
+	format = "%Y-%m-%d %H:%M:%S %Z"
+}

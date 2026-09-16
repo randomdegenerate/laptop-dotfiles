@@ -2,19 +2,29 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+  };
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 7d";
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "MikuTeto"; # Define your hostname.
+
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -48,6 +58,16 @@
     variant = "";
   };
 
+  security.rtkit.enable = true;
+    services.pipewire = {
+        enable = true;
+	alsa.enable = true;
+	alsa.support32Bit = true;
+  	pulse.enable = true;
+        # If you want to use JACK applications, uncomment this
+        #jack.enable = true;
+   };
+
   hardware.bluetooth = {
 	enable = true;
 	powerOnBoot = false;
@@ -55,9 +75,10 @@
 
   services.dunst.enable = true;
   services.displayManager.sddm.enable = true;
+
   services.xserver = {
 	enable = true;
-	
+
 	windowManager.i3 = {
 		enable = true;
 		extraPackages = with pkgs; [
@@ -71,40 +92,60 @@
 	};
   };
 
+  programs.fish = {
+   enable = true;
+   shellAliases = {
+	nixrebuild = "sudo nixos-rebuild switch --flake ~/nixsystem/#MikuTeto";
+    ls="eza -al --color=always --group-directories-first --icons=always"; # preferred listing
+    la="eza -a --color=always --group-directories-first --icons=always";  # all files and dirs
+    ll="eza -l --color=always --group-directories-first --icons=always";  # long format
+    lt="eza -aT --color=always --group-directories-first --icons=always"; # tree listing
+    "l."="eza -a | grep -e '^\.'";                                     # show only dotfiles
+};
+
+  };
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users."sandil" = {
     isNormalUser = true;
     description = "sandil kosgahakumbura";
     extraGroups = [ "networkmanager" "wheel" ];
+
     packages = with pkgs; [
+
     	# dev stuff
 	clang
 	jdk21
 	jdt-language-server
 	lua
 	lua-language-server
-	# local apps 
+    python3
+    python3Packages.pip
+    pyright
+
+	#
+	eclipses.eclipse-java
+	vscodium
+
+	# local apps
 	spotify
 	vesktop
 	ungoogled-chromium
+	opencode
+
+	# local
+
     ];
+
+    shell = pkgs.fish;
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-
-  programs.firefox.enable = true;
-  programs.git.enable = true;
-  programs.thunar.enable = true;
-  services.gvfs.enable = true;
-  services.tumbler.enable = true;
-  programs.neovim = {
-	enable = true;
-	defaultEditor = true;
-  };
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
    environment.systemPackages = with pkgs; [
+
+     networkmanagerapplet
      vim
      wget
      libsecret
@@ -115,7 +156,14 @@
      bluetui
      playerctl
      pavucontrol
-   ];
+     fastfetch
+    tmux
+    eza
+    fishPlugins.pure
+    fishPlugins.grc
+    grc
+
+  ];
 
   fonts.packages = with pkgs; [
   	#default fonts
@@ -141,11 +189,29 @@
      enableSSHSupport = true;
   };
 
-  # List services that you want to enable:
+  programs.firefox.enable = true;
+
+  programs.git = {
+    enable = true;
+    package = pkgs.git.override { withLibsecret = true; };
+    config = {
+            credential.helper = "libsecret";
+    };
+    };
+  programs.thunar.enable = true;
+  programs.neovim = {
+	enable = true;
+	defaultEditor = true;
+  };
+
+  services.gvfs.enable = true;
+  services.tumbler.enable = true;
+  services.gnome.gnome-keyring.enable = true;
 
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
+  # wifi
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 57621 ];
   networking.firewall.allowedUDPPorts = [ ];
